@@ -12,8 +12,8 @@ const QUICK_LINKS = [
 const CONTACTS = [
     { label: "algae.tree@mushroomworldgroup.com", href: "mailto:algae.tree@mushroomworldgroup.com" },
     { label: "Bhopal, IN" },
-    { label: "+91 7223871153", href: "tel:+917223871153" },
-    { label: "+91 989 310 6935", href: "tel:+919893106935" },
+    { label: "+91 9893106935", href: "tel:+919893106935" },
+    { label: "+91 8823006730", href: "tel:+918823006730" },
 ];
 // const LEGAL = ["Privacy Policy", "Disclaimer", "Terms of use", "Raise a Grievance"];
 const SOCIALS = [
