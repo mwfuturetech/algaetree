@@ -4,7 +4,9 @@ import type { BlogContentSection, BlogRecord } from "@/app/components/sections/b
 
 export const runtime = "nodejs";
 
-const DB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
+const DB_URL =
+    process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
+    "https://algaetree-f345a-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 function parseId(value: string | null | undefined): number | null {
     if (!value) return null;

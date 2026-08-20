@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import type { BlogItem, BlogRecord } from "@/app/components/sections/blog/types";
 
-const DB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
+const DB_URL =
+    process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
+    "https://algaetree-f345a-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 export async function GET() {
     try {
