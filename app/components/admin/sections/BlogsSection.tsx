@@ -343,6 +343,13 @@ export function BlogsSection() {
 
                     <div>
                         <label className="mb-2 block text-sm font-semibold text-[#2d5a27]">Title *</label>
+                        <input
+                            type="text"
+                            value={form.title}
+                            onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                            placeholder="Enter blog title"
+                            className="mb-4 w-full rounded-lg border border-[#cfcfcf] px-4 py-2"
+                        />
                         <div className="space-y-4">
                             {form.contentSections.map((section, index) => (
                                 <div key={index} className="space-y-3 rounded-lg border border-[#e0e0e0] bg-[#fafafa] p-4">
