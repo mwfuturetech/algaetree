@@ -219,11 +219,6 @@ export function BlogsSection() {
     };
 
     const handleSave = async () => {
-        if (!form.title || !form.heroMediaUrl) {
-            setError("Please fill in all required fields");
-            return;
-        }
-
         if (form.readMinutes <= 0) {
             setError("Read minutes must be greater than 0");
             return;

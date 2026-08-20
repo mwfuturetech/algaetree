@@ -19,13 +19,8 @@ interface NewsEventPayload {
 }
 
 function isValidPayload(payload: NewsEventPayload) {
-    return Boolean(
-        payload.category &&
-        payload.title &&
-        payload.excerpt &&
-        payload.mediaType &&
-        payload.mediaUrl
-    );
+    // Relaxed — allow saving partially-filled items (e.g. drafts).
+    return typeof payload === "object" && payload !== null;
 }
 
 function isBlobUrl(value?: string | null) {

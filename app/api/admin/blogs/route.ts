@@ -156,12 +156,9 @@ function normalizeInput(payload: Partial<BlogRecord>): BlogRecord {
 }
 
 function isValidPayload(payload: BlogRecord) {
-    return Boolean(
-        payload.title &&
-        (payload.contentSections ?? []).length > 0 &&
-        payload.heroMediaUrl &&
-        payload.readMinutes > 0
-    );
+    // Relaxed — allow saving drafts and partially-filled posts.
+    // Only guard against a non-numeric/invalid read time.
+    return typeof payload.readMinutes === "number" && payload.readMinutes >= 0;
 }
 
 function isBlobUrl(value?: string | null) {

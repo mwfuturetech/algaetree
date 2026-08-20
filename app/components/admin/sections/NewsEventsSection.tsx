@@ -200,11 +200,6 @@ export function NewsEventsSection() {
     };
 
     const handleSave = async () => {
-        if (!form.category || !form.title || !form.excerpt || !form.mediaUrl) {
-            setError("Please fill in all required fields");
-            return;
-        }
-
         if (isUploadingMedia) {
             setError("Please wait for media upload to finish");
             return;
