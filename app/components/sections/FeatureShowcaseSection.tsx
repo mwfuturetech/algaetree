@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Feature = {
@@ -64,46 +63,28 @@ const FEATURES: Feature[] = [
     },
 ];
 
-const FRAME_COUNT = 420;
-const FRAME_DIR = "/Cylender Animation 420 frames";
-const FRAME_BATCHES = [
-    { start: 1, end: 105, prefix: 344 },
-    { start: 106, end: 161, prefix: 345 },
-    { start: 162, end: 242, prefix: 346 },
-    { start: 243, end: 358, prefix: 348 },
-    { start: 359, end: 420, prefix: 349 },
-] as const;
-
-function getFrameSrc(frameNumber: number) {
-    const batch = FRAME_BATCHES.find(({ start, end }) => frameNumber >= start && frameNumber <= end);
-
-    if (!batch) {
-        return encodeURI(`${FRAME_DIR}/Cylender Animation.344.1.png`);
-    }
-
-    return encodeURI(`${FRAME_DIR}/Cylender Animation.${batch.prefix}.${frameNumber}.png`);
-}
+const ANIMATION_STEPS = 420;
+const ANIMATION_VIDEO = "/algaetree-scroll.mp4";
 
 function clamp(value: number, min: number, max: number) {
     return Math.min(max, Math.max(min, value));
 }
 
 export default function FeatureShowcaseSection() {
-    const [frameIndex, setFrameIndex] = useState(0);
+    const [progressRatio, setProgressRatio] = useState(0);
     const [isDesktopViewport, setIsDesktopViewport] = useState(false);
     const [isPinned, setIsPinned] = useState(false);
     const sectionRef = useRef<HTMLElement | null>(null);
     const contentRef = useRef<HTMLDivElement | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const videoDurationRef = useRef(0);
+    const progressRef = useRef(0);
     const rafRef = useRef<number | null>(null);
-    const preloadedFramesRef = useRef<Set<number>>(new Set());
-    const currentFrame = frameIndex + 1;
-    const currentFeature = FEATURES[clamp(Math.floor(frameIndex / (FRAME_COUNT / FEATURES.length)), 0, FEATURES.length - 1)];
-    const frameSrc = getFrameSrc(currentFrame);
+    const currentFeature = FEATURES[clamp(Math.floor(progressRatio * FEATURES.length), 0, FEATURES.length - 1)];
     const backgroundSrc = currentFeature.backgroundSrc ?? "/figma/bloom-micro-algae.webp";
     const backgroundPosition = currentFeature.backgroundPosition ?? "center center";
     const overlayColor = currentFeature.overlayColor ?? "rgba(0, 0, 0, 0.58)";
     const scrollStep = isDesktopViewport ? 20 : 14;
-    const progressRatio = FRAME_COUNT > 1 ? frameIndex / (FRAME_COUNT - 1) : 0;
 
     const updateScrollState = useCallback(() => {
         const section = sectionRef.current;
@@ -117,7 +98,7 @@ export default function FeatureShowcaseSection() {
         const currentScrollY = window.scrollY;
 
         // Section is visible if it enters viewport
-        const animationScrollDistance = (FRAME_COUNT - 1) * scrollStep;
+        const animationScrollDistance = (ANIMATION_STEPS - 1) * scrollStep;
         const scrolledSinceSectionTop = currentScrollY - sectionTop;
         const progress = clamp(scrolledSinceSectionTop / animationScrollDistance, 0, 1);
 
@@ -126,22 +107,17 @@ export default function FeatureShowcaseSection() {
 
         setIsPinned(shouldPin);
 
-        // Calculate frame index based on scroll progress (reversible)
         if (scrolledSinceSectionTop >= 0) {
-            const nextFrame = clamp(Math.floor(progress * FRAME_COUNT), 0, FRAME_COUNT - 1);
-            setFrameIndex(nextFrame);
+            progressRef.current = progress;
+            setProgressRatio(progress);
+
+            const video = videoRef.current;
+            const duration = videoDurationRef.current;
+            if (video && duration > 0) {
+                video.currentTime = Math.min(duration - 0.001, progress * duration);
+            }
         }
     }, [scrollStep]);
-
-    const preloadFrame = useCallback((frameNumber: number) => {
-        if (frameNumber < 1 || frameNumber > FRAME_COUNT || preloadedFramesRef.current.has(frameNumber)) {
-            return;
-        }
-
-        preloadedFramesRef.current.add(frameNumber);
-        const image = new window.Image();
-        image.src = getFrameSrc(frameNumber);
-    }, []);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -188,22 +164,8 @@ export default function FeatureShowcaseSection() {
         updateScrollState();
     }, [isDesktopViewport, updateScrollState]);
 
-    useEffect(() => {
-        const preloadWindow = isDesktopViewport ? 8 : 5;
-
-        for (let offset = -preloadWindow; offset <= preloadWindow; offset += 1) {
-            preloadFrame(currentFrame + offset);
-        }
-
-        if (currentFrame <= preloadWindow + 1) {
-            for (let frameNumber = 1; frameNumber <= Math.min(24, FRAME_COUNT); frameNumber += 1) {
-                preloadFrame(frameNumber);
-            }
-        }
-    }, [currentFrame, isDesktopViewport, preloadFrame]);
-
     // Calculate spacer height to maintain scroll distance
-    const spacerHeight = (FRAME_COUNT - 1) * scrollStep;
+    const spacerHeight = (ANIMATION_STEPS - 1) * scrollStep;
 
     return (
         <section ref={sectionRef} className="relative w-full overflow-visible bg-[#071700]">
@@ -268,14 +230,19 @@ export default function FeatureShowcaseSection() {
                     <div className="w-full lg:flex-[0_0_min(40vw,560px)]">
                         <div className="mx-auto w-full max-w-90 overflow-hidden rounded-[28px] border border-white/10 bg-[#f3f4f0] shadow-[0_30px_90px_rgba(0,0,0,0.38)] sm:max-w-100 lg:max-w-115">
                             <div className="relative aspect-4/5 w-full">
-                                <Image
-                                    src={frameSrc}
-                                    alt={`Cylinder animation frame ${frameIndex + 1} of ${FRAME_COUNT}`}
-                                    fill
-                                    unoptimized
-                                    sizes="(max-width: 1023px) 100vw, 48vw"
-                                    draggable={false}
-                                    className="object-cover"
+                                <video
+                                    ref={videoRef}
+                                    src={ANIMATION_VIDEO}
+                                    muted
+                                    playsInline
+                                    preload="auto"
+                                    aria-label="AlgaeTree product assembly animation"
+                                    onLoadedMetadata={(event) => {
+                                        const video = event.currentTarget;
+                                        videoDurationRef.current = video.duration;
+                                        video.currentTime = Math.min(video.duration - 0.001, progressRef.current * video.duration);
+                                    }}
+                                    className="h-full w-full object-cover"
                                     style={{ transform: "scaleX(1.08)", transformOrigin: "center center" }}
                                 />
                             </div>

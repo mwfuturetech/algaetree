@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+.map-dark .leaflet-tile-pane {
+  filter: brightness(0.58) contrast(1.18) saturate(0.7) hue-rotate(70deg);
+}
+
 @font-face {
   font-family: "Nevera";
   src:

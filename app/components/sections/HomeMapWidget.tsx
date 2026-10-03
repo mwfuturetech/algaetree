@@ -138,8 +138,7 @@ export default function HomeMapWidget() {
 
     const isSatellite = zoom >= SATELLITE_ZOOM;
 
-    const lightTile = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-    const darkTile = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+    const streetTile = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
     const satelliteTile =
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
@@ -166,17 +165,17 @@ export default function HomeMapWidget() {
                 boxZoom={false}
                 keyboard={false}
                 zoomControl={false}
-                attributionControl={false}
-                className="h-full w-full"
+                attributionControl
+                className={`h-full w-full ${isDark ? "map-dark" : ""}`}
                 style={{ background: isDark ? "#1a1f1a" : "#f0f0f0", touchAction: "none" }}
             >
                 <ZoomTracker onZoom={setZoom} />
                 <InMapZoomControls />
 
                 <TileLayer
-                    key={isSatellite ? "satellite" : isDark ? "dark" : "light"}
-                    attribution={isSatellite ? "Tiles &copy; Esri" : '&copy; <a href="https://carto.com/">CARTO</a>'}
-                    url={isSatellite ? satelliteTile : isDark ? darkTile : lightTile}
+                    key={isSatellite ? "satellite" : "street"}
+                    attribution={isSatellite ? "Tiles &copy; Esri" : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
+                    url={isSatellite ? satelliteTile : streetTile}
                 />
 
                 {indiaGeoJson && !isSatellite && (

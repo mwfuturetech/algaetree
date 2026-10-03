@@ -128,6 +128,7 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
     const [blog, setBlog] = useState<BlogItem | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+    const [shareStatus, setShareStatus] = useState("");
 
     useEffect(() => {
         let mounted = true;
@@ -165,6 +166,29 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
     );
     const heroMediaType = blog?.heroMediaType ?? blog?.mediaType ?? "image";
     const heroMediaUrl = blog?.heroMediaUrl ?? blog?.mediaUrl ?? "";
+
+    const showShareStatus = (message: string) => {
+        setShareStatus(message);
+        window.setTimeout(() => setShareStatus(""), 2500);
+    };
+
+    const handleShare = async () => {
+        if (!blog) return;
+
+        try {
+            const url = window.location.href;
+            if (navigator.share) {
+                await navigator.share({ title: blog.title, url });
+                showShareStatus("Article shared");
+            } else {
+                await navigator.clipboard.writeText(url);
+                showShareStatus("Link copied");
+            }
+        } catch (shareError) {
+            if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+            showShareStatus("Unable to share. Please copy the page URL.");
+        }
+    };
 
     if (isLoading) {
         return (
@@ -216,16 +240,18 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
                             <button
                                 type="button"
                                 aria-label="Share this article"
+                                onClick={handleShare}
                                 className="flex size-10 items-center justify-center rounded-full bg-[#0f1f30] text-white"
                             >
                                 ↗
                             </button>
+                            <span className="sr-only" aria-live="polite">{shareStatus}</span>
                             <div className="h-18 w-px bg-[#d2d2d2]" />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-14">
-                        <article className="space-y-10">
+                        <article className="min-w-0 space-y-10 overflow-hidden">
                             <div className="space-y-5 border-l-4 border-[#9fb40d] pl-4 sm:pl-6">
                                 <h1 className="max-w-150 font-space-grotesk text-[40px] leading-10 font-bold text-[#111] sm:text-[48px] sm:leading-12 ">
                                     {blog.title}
@@ -241,10 +267,18 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
                                         <p>Reading Time</p>
                                         <p className="text-[14px] normal-case tracking-normal text-[#9fb40d]">{blog.readMinutes} min</p>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleShare}
+                                        className="inline-flex items-center gap-2 rounded-full bg-[#0f1f30] px-4 py-2 font-nimbus text-sm text-white lg:hidden"
+                                    >
+                                        Share article <span aria-hidden="true">↗</span>
+                                    </button>
+                                    <span className="sr-only" aria-live="polite">{shareStatus}</span>
                                 </div>
                             </div>
 
-                            <aside className="h-fit rounded-[18px] bg-[#081320] px-5 py-5 text-white lg:hidden">
+                            <aside className="h-fit min-w-0 overflow-hidden rounded-[18px] bg-[#081320] px-5 py-5 text-white lg:hidden">
                                 <p className="font-space-grotesk text-[15px] font-semibold text-[#9fb40d]">In This Article</p>
                                 <ul className="mt-4 space-y-3">
                                     {toc.length === 0 ? (
@@ -253,10 +287,10 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
                                         toc.map((item, index) => (
                                             <li
                                                 key={`${item}-${index}`}
-                                                className="flex flex-nowrap items-center gap-2 whitespace-nowrap font-nimbus text-[12px] font-medium text-white"
+                                                className="flex min-w-0 items-start gap-2 font-nimbus text-[12px] font-medium leading-5 text-white"
                                             >
                                                 <span className="shrink-0 text-white">•</span>
-                                                <span className="min-w-0">{item}</span>
+                                                <span className="min-w-0 break-words [overflow-wrap:anywhere]">{item}</span>
                                             </li>
                                         ))
                                     )}
@@ -266,15 +300,15 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
                             {sections.map((section, index) => (
                                 <div key={index} className="space-y-5 mt-16">
                                     <div
-                                        className="font-space-grotesk text-[40px] leading-11 font-bold text-[#121212] [&_p]:m-0 [&_h1]:m-0 [&_h2]:m-0 [&_h3]:m-0 [&_h4]:m-0 [&_h5]:m-0 [&_h6]:m-0 [&_h1]:text-[40px] [&_h1]:leading-11 [&_h1]:font-bold [&_h2]:text-[34px] [&_h2]:leading-10 [&_h2]:font-bold [&_h3]:text-3xl [&_h3]:font-semibold [&_h4]:text-2xl [&_h4]:font-semibold [&_h5]:text-xl [&_h5]:font-semibold [&_h6]:text-lg [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em]"
+                                        className="break-words font-space-grotesk text-[40px] leading-11 font-bold text-[#121212] [overflow-wrap:anywhere] [&_p]:m-0 [&_h1]:m-0 [&_h2]:m-0 [&_h3]:m-0 [&_h4]:m-0 [&_h5]:m-0 [&_h6]:m-0 [&_h1]:text-[40px] [&_h1]:leading-11 [&_h1]:font-bold [&_h2]:text-[34px] [&_h2]:leading-10 [&_h2]:font-bold [&_h3]:text-3xl [&_h3]:font-semibold [&_h4]:text-2xl [&_h4]:font-semibold [&_h5]:text-xl [&_h5]:font-semibold [&_h6]:text-lg [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em]"
                                         dangerouslySetInnerHTML={{ __html: section.heading }}
                                     />
                                     <div
-                                        className="mt-8 font-space-grotesk text-[34px] leading-10 font-bold text-[#121212] [&_p]:m-0 [&_h1]:m-0 [&_h2]:m-0 [&_h3]:m-0 [&_h4]:m-0 [&_h5]:m-0 [&_h6]:m-0 [&_h1]:text-[34px] [&_h1]:leading-10 [&_h1]:font-bold [&_h2]:text-3xl [&_h2]:font-bold [&_h3]:text-2xl [&_h3]:font-semibold [&_h4]:text-xl [&_h4]:font-semibold [&_h5]:text-lg [&_h5]:font-semibold [&_h6]:text-base [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em]"
+                                        className="mt-8 break-words font-space-grotesk text-[34px] leading-10 font-bold text-[#121212] [overflow-wrap:anywhere] [&_p]:m-0 [&_h1]:m-0 [&_h2]:m-0 [&_h3]:m-0 [&_h4]:m-0 [&_h5]:m-0 [&_h6]:m-0 [&_h1]:text-[34px] [&_h1]:leading-10 [&_h1]:font-bold [&_h2]:text-3xl [&_h2]:font-bold [&_h3]:text-2xl [&_h3]:font-semibold [&_h4]:text-xl [&_h4]:font-semibold [&_h5]:text-lg [&_h5]:font-semibold [&_h6]:text-base [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em]"
                                         dangerouslySetInnerHTML={{ __html: section.subHeading }}
                                     />
                                     <div
-                                        className="font-nimbus text-[17px] leading-7 text-[#535353] [&_p]:mb-4 [&_p:last-child]:mb-0 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6"
+                                        className="break-words font-nimbus text-[17px] leading-7 text-[#535353] [overflow-wrap:anywhere] [&_p]:mb-4 [&_p:last-child]:mb-0 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6"
                                         dangerouslySetInnerHTML={{ __html: section.paragraph }}
                                     />
 
@@ -309,7 +343,7 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
                             ))}
                         </article>
 
-                        <aside className="hidden h-fit rounded-[18px] bg-[#081320] px-5 py-5 text-white lg:sticky lg:top-20 lg:block">
+                        <aside className="hidden h-fit min-w-0 overflow-hidden rounded-[18px] bg-[#081320] px-5 py-5 text-white lg:sticky lg:top-20 lg:block">
                             <p className="font-space-grotesk text-[15px] font-semibold text-[#9fb40d]">In This Article</p>
                             <ul className="mt-4 space-y-3">
                                 {toc.length === 0 ? (
@@ -318,10 +352,10 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
                                     toc.map((item, index) => (
                                         <li
                                             key={`${item}-${index}`}
-                                            className="flex flex-nowrap items-center gap-2 whitespace-nowrap font-nimbus text-[12px] font-medium text-white"
+                                            className="flex min-w-0 items-start gap-2 font-nimbus text-[12px] font-medium leading-5 text-white"
                                         >
                                             <span className="shrink-0 text-white">•</span>
-                                            <span className="min-w-0">{item}</span>
+                                            <span className="min-w-0 break-words [overflow-wrap:anywhere]">{item}</span>
                                         </li>
                                     ))
                                 )}
@@ -330,6 +364,11 @@ export default function BlogDetailSection({ blogId }: BlogDetailSectionProps) {
                     </div>
                 </div>
             </div>
+            {shareStatus && (
+                <div role="status" className="fixed bottom-6 right-6 z-50 rounded-lg bg-[#0f1f30] px-4 py-3 font-nimbus text-sm text-white shadow-xl">
+                    {shareStatus}
+                </div>
+            )}
         </section>
     );
 }
